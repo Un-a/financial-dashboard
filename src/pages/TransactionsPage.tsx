@@ -1,13 +1,10 @@
-// src/pages/TransactionsPage.tsx
-
-import { generateMockAccounts, generateMockExpenses, generateMockInvoicesAndPayments } from '../lib/mockData';
 import { TransactionTable } from '../components/TransactionTable';
+import { useTransactionStore } from '../stores/transactionStore';
 
 export const TransactionsPage = () => {
-  const accounts = generateMockAccounts();
-  const { invoices, payments: incomePayments } = generateMockInvoicesAndPayments({ accounts });
-  const expenses = generateMockExpenses(accounts, 15);
-  const payments = [...incomePayments, ...expenses];
+  const accounts = useTransactionStore((state) => state.accounts);
+  const payments = useTransactionStore((state) => state.payments);
+  const invoices = useTransactionStore((state) => state.invoices);
 
   return (
     <div className="space-y-8">

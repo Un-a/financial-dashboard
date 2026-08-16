@@ -1,13 +1,8 @@
-// src/pages/CashFlowPage.tsx
-
-import { generateMockAccounts, generateMockExpenses, generateMockInvoicesAndPayments } from '../lib/mockData';
 import { CashFlowTable } from '../components/CashFlowTable';
 
+import { useTransactionStore } from '../stores/transactionStore';
 export const CashFlowPage = () => {
-  const accounts = generateMockAccounts();
-  const { payments: incomePayments } = generateMockInvoicesAndPayments({ accounts });
-  const expenses = generateMockExpenses(accounts, 15);
-  const payments = [...incomePayments, ...expenses];
+  const payments = useTransactionStore((state) => state.payments);
 
   return (
     <div>

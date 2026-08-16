@@ -22,6 +22,7 @@ type TransactionTableProps =
       variant: 'payments';
       payments: Payment[];
       accounts: Account[];
+      invoices?: Invoice[]; // to resolve human-readable invoice numbers
     };
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
@@ -52,12 +53,16 @@ interface InvoiceRow extends Invoice {
 
 interface PaymentRow extends Payment {
   accountName: string;
+  invoiceNumber?: string;
 }
 
 const invoiceColumnHelper = createColumnHelper<InvoiceRow>();
 const paymentColumnHelper = createColumnHelper<PaymentRow>();
 
 const invoiceColumns = [
+  invoiceColumnHelper.accessor('invoiceNumber', {
+    header: 'Invoice #',
+  }),
   invoiceColumnHelper.accessor('clientName', {
     header: 'Client',
     cell: (info) => info.getValue(),
@@ -84,17 +89,29 @@ const invoiceColumns = [
 ];
 
 const paymentColumns = [
-  paymentColumnHelper.accessor('date', {
-    header: 'Date',
+  paymentColumnHelper.accessor('date', { header: 'Date' }),
+  paymentColumnHelper.accessor('direction', {
+    header: 'Type',
+    cell: (info) => (
+      <span className={info.getValue() === 'in' ? 'text-green-700' : 'text-red-600'}>
+        {info.getValue() === 'in' ? 'Income' : 'Expense'}
+      </span>
+    ),
   }),
   paymentColumnHelper.accessor('amount', {
     header: 'Amount',
-    cell: (info) => formatAmount(info.getValue(), info.row.original.currency),
+    cell: (info) => {
+      const sign = info.row.original.direction === 'out' ? '-' : '';
+      return `${sign}${formatAmount(info.getValue(), info.row.original.currency)}`;
+    },
   }),
-  paymentColumnHelper.accessor('accountName', {
-    header: 'Account',
+  paymentColumnHelper.accessor('category', { header: 'Category' }),
+  paymentColumnHelper.accessor('description', {
+    header: 'Description',
+    cell: (info) => info.getValue() ?? '—',
   }),
-  paymentColumnHelper.accessor('invoiceId', {
+  paymentColumnHelper.accessor('accountName', { header: 'Account' }),
+  paymentColumnHelper.accessor('invoiceNumber', {
     header: 'Linked invoice',
     cell: (info) => info.getValue() ?? '—',
   }),
@@ -109,7 +126,7 @@ interface TableShellProps<T> {
   filterPlaceholder: string;
 }
 
-function TableShell<T>({ data, columns, filterPlaceholder }: TableShellProps<T>) {
+const TableShell = <T extends object>({ data, columns, filterPlaceholder }: TableShellProps<T>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -137,39 +154,40 @@ function TableShell<T>({ data, columns, filterPlaceholder }: TableShellProps<T>)
         placeholder={filterPlaceholder}
         className="mb-3 w-full max-w-xs rounded-md border border-gray-300 px-3 py-1.5 text-sm"
       />
-
-      <table className="w-full text-left text-sm">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} className="border-b border-gray-200 text-gray-500">
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  className="cursor-pointer select-none py-2 font-medium"
-                >
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                  {{
-                    asc: ' ▲',
-                    desc: ' ▼',
-                  }[header.column.getIsSorted() as string] ?? ''}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-b border-gray-100">
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="py-2">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className="border-b border-gray-200 text-gray-500">
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    className="cursor-pointer select-none py-2 font-medium"
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {{
+                      asc: ' ▲',
+                      desc: ' ▼',
+                    }[header.column.getIsSorted() as string] ?? ''}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className="border-b border-gray-100">
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="py-2">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {table.getRowModel().rows.length === 0 && (
         <p className="py-4 text-center text-sm text-gray-400">No results found.</p>
@@ -216,10 +234,11 @@ export const TransactionTable = (props: TransactionTableProps) => {
     );
   }
 
-  const { payments, accounts } = props;
+  const { payments, accounts, invoices } = props;
   const data: PaymentRow[] = payments.map((payment) => ({
     ...payment,
     accountName: accounts.find((a) => a.id === payment.accountId)?.name ?? payment.accountId,
+    invoiceNumber: invoices?.find((inv) => inv.id === payment.invoiceId)?.invoiceNumber,
   }));
 
   return (

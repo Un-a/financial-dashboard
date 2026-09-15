@@ -1,4 +1,4 @@
-# Paušal Dashboard
+# Financial Dashboard
 
 A financial monitoring dashboard for Serbian entrepreneurs, built as a portfolio project.
 
@@ -10,14 +10,11 @@ In active development — no public demo yet. The project currently runs on mock
 
 ## Features
 
-* Multi-currency account balances (RSD / EUR / USD), grouped by currency
 * Cash Flow Statement (Operating / Investing / Financing) with drill-down by category and by period
 * Simplified summary table (Beginning balance / Income / Expense / Ending balance) for Last month, Month-to-date, and Year-to-date
 * Paušal limit tracker — 6,000,000 RSD, calculated on a calendar-year basis
 * VAT (PDV) limit tracker — 8,000,000 RSD, calculated on a rolling 365-day basis
 * Sortable, filterable, paginated tables for invoices and payments
-* Multi-currency conversion using historical NBS exchange rates, frozen at each invoice's issue date (not payment date — a common source of error)
-* Instrument-panel visual language: hairline borders, no shadows, a gauge/threshold metaphor for the tax limits, dark/light theme
 
 ## How It Works
 
@@ -31,15 +28,11 @@ Two core entities — `Invoice` and `Payment` — plus `Account` and `ExchangeRa
 
 Both limits are calculated on **promet** — accrual, based on invoice issue date — never on actual cash received, since that's how the regime is legally defined. The paušal limit resets every calendar year; the VAT limit is a rolling 365-day window, so the two widgets use different date logic even though they look identical.
 
-### 3. Multi-currency conversion
-
-Historical exchange rates come from the National Bank of Serbia (via the `kurs.resenje.org` API) and are cached indefinitely by date, since a past day's official rate never changes. Each invoice's currency amount is converted using the rate on its `issueDate`, so tax-limit totals and the cash flow statement are consistent regardless of the currencies involved.
-
-### 4. Cash flow statement
+### 3. Cash flow statement
 
 Payments are aggregated into a standard three-category statement (Operating / Investing / Financing), mirroring the structure a real bank statement import will eventually populate.
 
-### 5. Planned: forecasting
+### 4. Planned: forecasting
 
 A rule-based baseline (known obligations + expected payments on unpaid invoices) will later be extended with an AI layer that looks at 12–18 months of historical patterns and seasonality to flag likely cash shortfalls, with the AI output clearly labeled as an estimate rather than a fact.
 
@@ -52,13 +45,10 @@ A rule-based baseline (known obligations + expected payments on unpaid invoices)
 * **Tailwind CSS v4** — CSS-first config, no `tailwind.config.js`
 * **Vite** — build tooling
 * **TanStack Table** — sortable/filterable/paginated tables
-* **Recharts** — charts (planned)
-* **Fraunces + IBM Plex Sans** — typography, chosen with future Cyrillic i18n in mind
 
 ### Data
 
 * **@faker-js/faker** — mock data generation (development phase)
-* **kurs.resenje.org** — unofficial JSON REST API over NBS (National Bank of Serbia) exchange rate data
 
 ## Why I Built It
 

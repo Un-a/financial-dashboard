@@ -6,7 +6,9 @@ The application gives sole proprietors operating under Serbia's flat-rate tax re
 
 ## Demo
 
-In active development — no public demo yet. The project currently runs on mock data seeded with `@faker-js/faker` (15 months of invoices and payments across 4 accounts, with realistic seasonality).
+[Finboard](https://un-a.github.io/financial-dashboard/)
+
+> **Note:** The project currently runs on mock data seeded with `@faker-js/faker` (15 months of invoices and payments across 4 accounts, with realistic seasonality).
 
 ## Features
 

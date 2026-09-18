@@ -1,8 +1,6 @@
-// src/components/CashFlowTable.tsx
-
 import { useState } from 'react';
-import type { CashFlowCategory, Payment } from '../types';
-import { getCashFlowStatement, getCategoryBreakdown } from '../lib/cashFlow';
+import type { CashFlowCategory, Payment } from '../../types';
+import { getCashFlowStatement, getCategoryBreakdown } from '../../lib/cashFlow';
 
 const CATEGORY_LABELS: Record<CashFlowCategory, string> = {
   operating: 'Net cash from operating activities',
@@ -19,6 +17,17 @@ interface PeriodValues {
   yearToDate: number;
 }
 
+// Detail lines force a fixed tone regardless of the raw number's sign:
+// `negative` for outflows (expense breakdowns), `positive` for inflows
+// (e.g. Cash received) — each is inherently one semantic category.
+// Summary rows (category totals, net change) instead use `signTone` to
+// color by the actual computed sign, since those can genuinely go either way.
+const toneForValue = (value: number): string => {
+  if (value > 0) return 'text-ledger';
+  if (value < 0) return 'text-overdue';
+  return '';
+};
+
 interface RowProps {
   label: string;
   values: PeriodValues;
@@ -27,28 +36,32 @@ interface RowProps {
   expanded?: boolean;
   indent?: boolean;
   negative?: boolean;
+  positive?: boolean;
+  signTone?: boolean;
   onClick?: () => void;
 }
 
-const Row = ({ label, values, bold, expandable, expanded, indent, negative, onClick }: RowProps) => (
+const Row = ({ label, values, bold, expandable, expanded, indent, negative, positive, signTone, onClick }: RowProps) => (
   <tr
     onClick={onClick}
-    className={`border-b border-gray-100 ${expandable ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+    className={`border-b border-border ${expandable ? 'cursor-pointer hover:bg-ink/5' : ''}`}
   >
-    <td className={`px-4 py-2 ${bold ? 'font-semibold' : ''} ${indent ? 'pl-8 text-gray-600' : ''}`}>
-      {expandable && <span className="mr-1 text-gray-400">{expanded ? '▾' : '▸'}</span>}
+    <td className={`px-4 py-2 ${bold ? 'font-semibold' : ''} ${indent ? 'pl-8 text-ink-muted' : ''}`}>
+      {expandable && <span className="mr-1 text-ink-faint">{expanded ? '▾' : '▸'}</span>}
       {label}
     </td>
-    {(['lastMonth', 'monthToDate', 'yearToDate'] as const).map((key) => (
-      <td
-        key={key}
-        className={`px-4 py-2 text-right ${bold ? 'font-semibold' : ''} ${
-          negative && values[key] !== 0 ? 'text-red-600' : ''
-        }`}
-      >
-        {formatAmount(negative && !!values[key] ? -Math.abs(values[key]) : values[key])}
-      </td>
-    ))}
+    {(['lastMonth', 'monthToDate', 'yearToDate'] as const).map((key) => {
+      const raw = values[key];
+      const displayValue = negative && !!raw ? -Math.abs(raw) : positive ? Math.abs(raw) : raw;
+      const tone = negative && raw !== 0 ? 'text-overdue' : positive && raw !== 0 ? 'text-ledger' : signTone ? toneForValue(displayValue) : '';
+      const formatted = positive && raw !== 0 ? `+${formatAmount(displayValue)}` : formatAmount(displayValue);
+
+      return (
+        <td key={key} className={`px-4 py-2 text-right ${bold ? 'font-semibold' : ''} ${tone}`}>
+          {formatted}
+        </td>
+      );
+    })}
   </tr>
 );
 
@@ -66,17 +79,17 @@ export const CashFlowTable = ({ payments }: CashFlowTableProps) => {
     setExpandedCategory((prev) => (prev === category ? null : category));
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-instrument border border-border bg-surface">
       <div className="px-4 pt-4">
-        <h2 className="text-lg font-semibold text-gray-900">Cash flow overview</h2>
-        <p className="text-sm italic text-gray-400">
+        <h2 className="text-lg font-semibold text-ink">Cash flow overview</h2>
+        <p className="text-sm italic text-ink-faint">
           naive sum across currencies — RSD conversion coming in a later phase
         </p>
       </div>
 
       <table className="mt-3 w-full text-sm">
         <thead>
-          <tr className="bg-indigo-900 text-white">
+          <tr className="border-b border-border text-ink-muted">
             <th className="px-4 py-2 text-left font-medium">Category</th>
             <th className="px-4 py-2 text-right font-medium">Last month</th>
             <th className="px-4 py-2 text-right font-medium">Month to date</th>
@@ -98,6 +111,7 @@ export const CashFlowTable = ({ payments }: CashFlowTableProps) => {
                   values={statement[category]}
                   expandable
                   expanded={isExpanded}
+                  signTone
                   onClick={() => toggleCategory(category)}
                 />
 
@@ -109,7 +123,7 @@ export const CashFlowTable = ({ payments }: CashFlowTableProps) => {
                         label="Cash received"
                         values={breakdown.cashReceived}
                         indent
-                        negative
+                        positive
                       />
                     )}
                     {breakdown.expenseLines.map((line) => (
@@ -122,8 +136,8 @@ export const CashFlowTable = ({ payments }: CashFlowTableProps) => {
                       />
                     ))}
                     {breakdown.expenseLines.length === 0 && category !== 'operating' && (
-                      <tr key={`${category}-empty`}>
-                        <td colSpan={4} className="px-4 py-2 pl-8 text-xs text-gray-400">
+                      <tr key={`${category}-empty`} className="border-b border-border">
+                        <td colSpan={4} className="px-4 py-2 pl-8 text-xs text-ink-faint">
                           No transactions in this category yet.
                         </td>
                       </tr>
@@ -134,7 +148,7 @@ export const CashFlowTable = ({ payments }: CashFlowTableProps) => {
             );
           })}
 
-          <Row label="Net change in cash" values={statement.netChange} bold />
+          <Row label="Net change in cash" values={statement.netChange} bold signTone />
           <Row label="Ending balance" values={statement.endingBalance} bold />
         </tbody>
       </table>

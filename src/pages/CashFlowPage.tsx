@@ -1,4 +1,4 @@
-import { CashFlowTable } from '../components/CashFlowTable';
+import { CashFlowTable } from '../components/cash-flow/CashFlowTable';
 
 import { useTransactionStore } from '../stores/transactionStore';
 export const CashFlowPage = () => {
@@ -6,7 +6,7 @@ export const CashFlowPage = () => {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-bold text-gray-900">Cash Flow</h1>
+      <h1 className="mb-4 text-3xl font-bold text-center">Cash Flow</h1>
       <CashFlowTable payments={payments} />
     </div>
   );

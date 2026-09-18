@@ -1,4 +1,4 @@
-import type { Account, CurrencyCode } from '../types';
+import type { Account, CurrencyCode } from '../../types';
 
 interface CashFlowCardProps {
   accounts: Account[];
@@ -24,20 +24,20 @@ export const CashFlowCard = ({ accounts }: CashFlowCardProps) => {
   const currencies = Object.keys(totalsByCurrency) as CurrencyCode[];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-sm font-medium text-gray-500">Total Cash Flow</h2>
+    <div className="rounded-instrument border border-border bg-surface p-6">
+      <h2 className="text-sm font-medium text-ink-muted">Total Cash Flow</h2>
 
       <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
         {currencies.map((currency) => (
           <div key={currency}>
-            <span className="text-2xl font-semibold text-gray-900">
+            <span className="text-2xl font-semibold text-ink">
               {formatAmount(totalsByCurrency[currency], currency)}
             </span>
           </div>
         ))}
       </div>
 
-      <p className="mt-2 text-xs text-gray-400">
+      <p className="mt-2 text-xs text-ink-faint">
         Shown per currency — conversion to a single total is coming in a later phase.
       </p>
     </div>

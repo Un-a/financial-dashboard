@@ -1,4 +1,4 @@
-# Financial Dashboard
+# Financial Dashboard (Finboard)
 
 A financial monitoring dashboard for Serbian entrepreneurs, built as a portfolio project.
 

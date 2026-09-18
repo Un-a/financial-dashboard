@@ -1,1 +1,107 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
+
+/* ============================================
+   Dark mode strategy: class-based, controlled by useThemeStore
+   (not prefers-color-scheme — theme is a manual user choice)
+   ============================================ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   Design tokens — light theme (default)
+   ============================================ */
+:root {
+  /* Base surfaces */
+  --color-paper: #f3f1ec;
+  --color-surface: #ffffff;
+  --color-ink: #161a17;
+  --color-ink-muted: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  --color-ink-faint: color-mix(in srgb, var(--color-ink) 35%, transparent);
+
+  /* Semantic accents — meaning stays fixed across themes */
+  --color-ledger: #178a4e; /* income / limit: calm zone */
+  --color-signal: #d97706; /* limit: approaching zone */
+  --color-overdue: #dc2f1f; /* expense / limit: critical zone */
+
+  /* Structural */
+  --color-border: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --radius-instrument: 2px;
+}
+
+/* ============================================
+   Design tokens — dark theme
+   Not an inversion: each accent is independently
+   re-tuned for contrast on a dark surface.
+   ============================================ */
+.dark {
+  --color-paper: #14171a;
+  --color-surface: #1b1f22;
+  --color-ink: #ebe8e1;
+  --color-ink-muted: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  --color-ink-faint: color-mix(in srgb, var(--color-ink) 35%, transparent);
+
+  --color-ledger: #4ade94;
+  --color-signal: #fbbf54;
+  --color-overdue: #ff7a5c;
+
+  --color-border: color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+
+/* ============================================
+   Tailwind v4 — map tokens into utility classes
+   (CSS-first config, no tailwind.config.js)
+   ============================================ */
+@theme {
+  --font-display: "Fraunces", ui-serif, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: var(--color-paper);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-ledger: var(--color-ledger);
+  --color-signal: var(--color-signal);
+  --color-overdue: var(--color-overdue);
+  --color-border: var(--color-border);
+
+  --radius-instrument: var(--radius-instrument);
+}
+
+/* ============================================
+   Base layer
+   ============================================ */
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Numbers carry the display typeface everywhere they're the hero */
+  .figure {
+    font-family: var(--font-display);
+    font-feature-settings: "onum" 0; /* lining figures, not old-style, in tables */
+  }
+
+  /* No shadows anywhere — depth comes from the border only */
+  * {
+    box-shadow: none;
+  }
+    button {
+    cursor: pointer;
+  }
+
+  /* Preflight не даёт видимого фокуса на кнопках/ссылках —
+     а раз box-shadow у нас под запретом, для focus-состояния
+     используем outline, а не тень */
+  button:focus-visible,
+  a:focus-visible {
+    outline: 1px solid var(--color-ledger);
+    outline-offset: 2px;
+  }
+}

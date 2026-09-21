@@ -6,7 +6,7 @@ import { TransactionsPage } from './pages/TransactionsPage';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/financial-dashboard">
       <Routes>
         <Route element={<MainLayout />}>
         <Route path="/" element={<DashboardPage />} />
